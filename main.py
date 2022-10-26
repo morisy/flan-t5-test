@@ -8,31 +8,40 @@ DocumentCloud using the standard API
 """
 
 from documentcloud.addon import AddOn
+from transformers import T5Tokenizer, T5ForConditionalGeneration
 
 
-class HelloWorld(AddOn):
+class Flan(AddOn):
     """An example Add-On for DocumentCloud."""
 
     def main(self):
         """The main add-on functionality goes here."""
-        # fetch your add-on specific data
-        name = self.data.get("name", "world")
+        tokenizer = T5Tokenizer.from_pretrained("google/flan-t5-small")
+        model = T5ForConditionalGeneration.from_pretrained("google/flan-t5-small")
 
-        self.set_message("Hello World start!")
+
+        # fetch your add-on specific data
+
+        self.set_message("Trying to run the Flan model on your documents!")
 
         # add a hello note to the first page of each selected document
         for document in self.get_documents():
+            # Get the text from the document
+            prompt = self.data.get("prompt")
+            input_text = prompt + document.text
+            print(input_text)
             # get_documents will iterate through all documents efficiently,
             # either selected or by query, dependeing on which is passed in
-            document.annotations.create(f"Hello {name}!", 0)
+            # the request.
+            input_ids = tokenizer(input_text, return_tensors="pt").input_ids
+            outputs = model.generate(input_ids)
+            print(tokenizer.decode(outputs[0]))
+            document.description(tokenizer.decode(outputs[0]))
+            with open("summary.txt", "w+") as file_:
+                file_.write("Hello world!")
+                self.upload_file(file_)
 
-        with open("hello.txt", "w+") as file_:
-            file_.write("Hello world!")
-            self.upload_file(file_)
-
-        self.set_message("Hello World end!")
-        self.send_mail("Hello World!", "We finished!")
-
+    
 
 if __name__ == "__main__":
-    HelloWorld().main()
+    Flan().main()

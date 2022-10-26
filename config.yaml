@@ -14,9 +14,9 @@ documents:
 # Properties are the fields for your form
 properties:
   # the key is the name of the variable that will be returned to your code
-  name:
+  prompt:
     # the title is what will be shown as the form label
-    title: Name
+    title: Prompt
     # a string is text
     type: string
 
